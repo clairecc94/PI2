@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 7
+names: ['contrail maybe', 'contrail old', 'contrail veryold', 'contrail young', 'parasite', 'sun', 'unknow']
+
+roboflow:
+  workspace: sorbonne-universit-xcyrb
+  project: contrail_seg1
+  version: 27
+  license: BY-NC-SA 4.0
+  url: https://universe.roboflow.com/sorbonne-universit-xcyrb/contrail_seg1/dataset/27
