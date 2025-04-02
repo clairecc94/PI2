@@ -37,7 +37,7 @@ def warp(img, UpSampFactor):
     return im_warp
 
 # Appliquer la transformation aux images du dataset
-for idx, sample in enumerate(ds['train'][:10]):  # Limite à 10 images pour l'exemple
+for idx, sample in enumerate(ds['train']):  # Limite à 10 images pour l'exemple
     img = np.array(sample['image'])  # Convertir PIL -> NumPy
     im_warp = warp(img, UpSampFactor=1)
     im_warp = np.clip(im_warp, 0, 255).astype(np.uint8)

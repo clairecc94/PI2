@@ -85,9 +85,9 @@ import os
 import cv2
 from math import pi
 from sun_position_identification import *
-
+"""
 def adapt_sun_position(time, unwrapped_shape, original_params=None):
-    """
+    
     Calcule la position du soleil dans l'image unwrapped
     
     Parameters:
@@ -105,7 +105,7 @@ def adapt_sun_position(time, unwrapped_shape, original_params=None):
         Coordonnées du soleil dans l'image unwrapped
     sun_mask : numpy.ndarray
         Masque binaire indiquant la position du soleil
-    """
+   
     # Paramètres par défaut de l'image originale (comme dans sun_position)
     if original_params is None:
         original_params = {
@@ -153,7 +153,7 @@ def adapt_sun_position(time, unwrapped_shape, original_params=None):
                 sun_mask[i, j, 0] = 255  # Marquer le soleil en rouge
     
     return new_x, new_y, sun_mask
-
+"""
 def create_mask_for_unwrapped(unwrapped_shape, margin=0.05):
     """
     Crée un masque pour exclure les bords et zones hors de l'image unwrapped
@@ -308,7 +308,7 @@ def cloud_detection_unwrapped(time, unwrapped_image, data_dir='data_npy'):
         'origin_y': 30
     }
     
-    sun_x, sun_y, sun_mask = adapt_sun_position(time, unwrapped_image.shape, original_params)
+    sun_x, sun_y, sun_mask = detect_sun_in_unwrapped(unwrapped_image, time, original_params)
     valid_mask = create_mask_for_unwrapped(unwrapped_image.shape)
     
     unwrapped_csl_image = load_matching_csl_unwrapped(time)

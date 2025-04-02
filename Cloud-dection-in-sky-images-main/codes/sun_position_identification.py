@@ -100,8 +100,6 @@ def sun_position(time):
                 sun_mask[:,:,0][i,j]=255
 
     return sun_center_x, sun_center_y, sun_mask
-
-
 import numpy as np
 from math import sin, cos, radians, degrees, sqrt, atan2
 import cv2
@@ -109,7 +107,6 @@ import cv2
 def adapt_sun_position(time, unwrapped_shape, original_params=None):
     """
     Calcule la position du soleil dans l'image unwrapped en respectant la transformation utilisée dans `unwarp`.
-
     Parameters:
     -----------
     time : datetime.datetime
@@ -118,7 +115,6 @@ def adapt_sun_position(time, unwrapped_shape, original_params=None):
         Dimensions de l'image unwrapped (hauteur, largeur).
     original_params : dict, optional
         Paramètres de l'image originale (rayon, centre_x, centre_y).
-
     Returns:
     --------
     new_x, new_y : int, int
@@ -141,40 +137,39 @@ def adapt_sun_position(time, unwrapped_shape, original_params=None):
     # Conversion en coordonnées polaires
     s_sun = (zenith / 90) * original_params['r']  # Distance sur l'image originale
     theta = radians(azimuth - original_params['delta'] + 90)  # Angle ajusté en radians
-
+    
     # Vérifier si le soleil est hors du champ de vision après unwrapping
     if s_sun > 0.707 * original_params['r']:
         return None, None, None  
-
+    
     # Appliquer la même transformation que dans `unwarp`
     rho_sun = 2 * s_sun / (2 * sqrt(original_params['r'] ** 2 - s_sun ** 2) - original_params['r'])
     X_res0 = rho_sun * cos(theta)
     Y_res0 = rho_sun * sin(theta)
-
+    
     # Dimensions de l'image unwrapped
     height, width = unwrapped_shape[:2]
     width_to_height = 3.0
-
+    
     # Conversion aux coordonnées de l'image unwrapped
     new_x = int((1 + X_res0 / width_to_height) * width / 2)
     new_y = int((1 + Y_res0 / width_to_height) * height / 2)
-
+    
     # Vérifier si le soleil est hors de l'image unwrapped
     if not (0 <= new_x < width and 0 <= new_y < height):
         return None, None, None
-
+    
     # Créer un masque circulaire pour le soleil
     sun_radius_unwrapped = max(2, int(width / 100))  # Ajustable selon la résolution
     sun_mask = np.zeros((height, width, 3), dtype=np.uint8)
-
     for i in range(max(0, new_y - sun_radius_unwrapped), min(height, new_y + sun_radius_unwrapped)):
         for j in range(max(0, new_x - sun_radius_unwrapped), min(width, new_x + sun_radius_unwrapped)):
             if (j - new_x) ** 2 + (i - new_y) ** 2 <= sun_radius_unwrapped ** 2:
                 sun_mask[i, j, 0] = 255  # Marquer en rouge
-
+    
     return new_x, new_y, sun_mask
 
-def detect_sun_in_unwrapped(unwrapped_img, time, original_params=None):
+def detect_sun_in_unwrapped(unwrapped_img, time, original_params=None, search_radius=100):
     """
     Détecte la position du soleil dans une image unwrapped
     
@@ -186,6 +181,8 @@ def detect_sun_in_unwrapped(unwrapped_img, time, original_params=None):
         Horodatage de l'image
     original_params : dict, optional
         Paramètres originaux de l'image
+    search_radius : int, optional
+        Rayon de recherche autour de la position calculée
         
     Returns:
     --------
@@ -196,13 +193,100 @@ def detect_sun_in_unwrapped(unwrapped_img, time, original_params=None):
     """
     # Obtenir les dimensions de l'image unwrapped
     unwrapped_shape = unwrapped_img.shape
+    height, width = unwrapped_shape[:2]
     
-    # Calculer la position du soleil dans l'image unwrapped
-    sun_x, sun_y, sun_mask = adapt_sun_position(time, unwrapped_shape, original_params)
+    # Calculer la position du soleil dans l'image unwrapped (position théorique)
+    sun_x, sun_y, sun_mask_initial = adapt_sun_position(time, unwrapped_shape, original_params)
     
     # Si le soleil est hors du champ de vision après unwrapping
-    if sun_x is None:
-        return None, None
+    if sun_x is None or sun_y is None:
+        # Dans ce cas, chercher directement le point le plus lumineux dans toute l'image
+        if len(unwrapped_img.shape) == 3:
+            gray_img = cv2.cvtColor(unwrapped_img, cv2.COLOR_BGR2GRAY)
+        else:
+            gray_img = unwrapped_img.copy()
+            
+        # Appliquer un flou pour réduire le bruit
+        blur_img = cv2.GaussianBlur(gray_img, (5, 5), 0)
+        
+        # Trouver le point le plus lumineux
+        _, max_val, _, max_loc = cv2.minMaxLoc(blur_img)
+        sun_x, sun_y = max_loc
+        
+        # Créer un masque pour cette position
+        sun_radius = max(2, int(width / 100))
+        sun_mask = np.zeros((height, width, 3), dtype=np.uint8)
+        for i in range(max(0, sun_y - sun_radius), min(height, sun_y + sun_radius)):
+            for j in range(max(0, sun_x - sun_radius), min(width, sun_x + sun_radius)):
+                if (j - sun_x) ** 2 + (i - sun_y) ** 2 <= sun_radius ** 2:
+                    sun_mask[i, j, 0] = 255
+                    
+        return (sun_x, sun_y), sun_mask
     
-    return (sun_x, sun_y), sun_mask
-
+    # Définir la région d'intérêt (ROI) autour de la position théorique
+    x_min = max(0, sun_x - search_radius)
+    x_max = min(width, sun_x + search_radius)
+    y_min = max(0, sun_y - search_radius)
+    y_max = min(height, sun_y + search_radius)
+    
+    # Extraire la région d'intérêt
+    if len(unwrapped_img.shape) == 3:
+        roi = unwrapped_img[y_min:y_max, x_min:x_max].copy()
+        # Convertir en niveaux de gris
+        roi_gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+    else:
+        roi = unwrapped_img[y_min:y_max, x_min:x_max].copy()
+        roi_gray = roi.copy()
+    
+    # Si la ROI est vide, utiliser la position théorique
+    if roi.size == 0:
+        return (sun_x, sun_y), sun_mask_initial
+    
+    # Appliquer un flou gaussien pour réduire le bruit
+    roi_blur = cv2.GaussianBlur(roi_gray, (5, 5), 0)
+    
+    # Trouver le point le plus lumineux dans la région d'intérêt
+    _, _, _, max_loc = cv2.minMaxLoc(roi_blur)
+    
+    # Convertir les coordonnées locales en coordonnées globales
+    refined_x = max_loc[0] + x_min
+    refined_y = max_loc[1] + y_min
+    
+    # Affiner la position en analysant une petite région autour du point le plus lumineux
+    # Créer une petite ROI autour du point le plus lumineux
+    fine_radius = 10
+    fine_x_min = max(0, refined_x - fine_radius)
+    fine_x_max = min(width, refined_x + fine_radius)
+    fine_y_min = max(0, refined_y - fine_radius)
+    fine_y_max = min(height, refined_y + fine_radius)
+    
+    fine_roi = unwrapped_img[fine_y_min:fine_y_max, fine_x_min:fine_x_max].copy()
+    
+    if fine_roi.size > 0:
+        if len(fine_roi.shape) == 3:
+            fine_roi_gray = cv2.cvtColor(fine_roi, cv2.COLOR_BGR2GRAY)
+        else:
+            fine_roi_gray = fine_roi.copy()
+        
+        # Trouver les pixels lumineux (avec un seuil élevé)
+        max_val = np.max(fine_roi_gray)
+        threshold = max_val * 0.95  # Seuil à 95% de la valeur maximale
+        bright_pixels = fine_roi_gray >= threshold
+        
+        y_coords, x_coords = np.where(bright_pixels)
+        
+        if len(y_coords) > 0:
+            # Calculer le centre des pixels lumineux
+            refined_x = int(np.mean(x_coords)) + fine_x_min
+            refined_y = int(np.mean(y_coords)) + fine_y_min
+    
+    # Créer un masque pour la position affinée
+    sun_radius = max(2, int(width / 100))
+    refined_sun_mask = np.zeros((height, width, 3), dtype=np.uint8)
+    
+    for i in range(max(0, refined_y - sun_radius), min(height, refined_y + sun_radius)):
+        for j in range(max(0, refined_x - sun_radius), min(width, refined_x + sun_radius)):
+            if (j - refined_x) ** 2 + (i - refined_y) ** 2 <= sun_radius ** 2:
+                refined_sun_mask[i, j, 0] = 255  # Marquer en rouge
+    
+    return refined_x, refined_y, refined_sun_mask
