@@ -221,7 +221,7 @@ def detect_sun_in_unwrapped(unwrapped_img, time, original_params=None, search_ra
                 if (j - sun_x) ** 2 + (i - sun_y) ** 2 <= sun_radius ** 2:
                     sun_mask[i, j, 0] = 255
                     
-        return (sun_x, sun_y), sun_mask
+        return sun_x, sun_y, sun_mask
     
     # Définir la région d'intérêt (ROI) autour de la position théorique
     x_min = max(0, sun_x - search_radius)
@@ -240,7 +240,7 @@ def detect_sun_in_unwrapped(unwrapped_img, time, original_params=None, search_ra
     
     # Si la ROI est vide, utiliser la position théorique
     if roi.size == 0:
-        return (sun_x, sun_y), sun_mask_initial
+        return sun_x, sun_y, sun_mask_initial
     
     # Appliquer un flou gaussien pour réduire le bruit
     roi_blur = cv2.GaussianBlur(roi_gray, (5, 5), 0)
