@@ -1,0 +1,8 @@
+{
+  "routes": {
+    "/": {},
+    "/dashboard": {},
+    "/real-time-analysis": {},
+    "/scan-history": {}
+  }
+}
