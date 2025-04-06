@@ -1,11 +1,12 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms'; // <-- add this if not already there
 import axios from 'axios';
 
 @Component({
   standalone: true,
   selector: 'app-real-time-analysis',
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './real-time-analysis.component.html',
   styleUrls: ['./real-time-analysis.component.scss'],
 })
@@ -14,6 +15,7 @@ export class RealTimeAnalysisComponent {
   imageResult: any; // To hold the result from the Roboflow API
   loading: boolean = false;
   error: string | null = null;
+  confidenceThreshold: number = 0.5;
 
   private model = 'contrails-detection-6hngf';
   private version = '2';
@@ -112,6 +114,8 @@ export class RealTimeAnalysisComponent {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     this.imageResult.predictions.forEach((prediction: any) => {
+      if (prediction.confidence < this.confidenceThreshold) return;
+
       const points = prediction.points;
 
       ctx.beginPath();

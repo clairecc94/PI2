@@ -8,6 +8,19 @@
     <input type="file" id="file-upload" (change)="onFileSelected($event)" />
   </div>
 
+  <div class="confidence-slider">
+    <label for="confidence">Confidence threshold: {{ confidenceThreshold.toFixed(2) }}</label>
+    <input
+      type="range"
+      id="confidence"
+      min="0"
+      max="1"
+      step="0.01"
+      [(ngModel)]="confidenceThreshold"
+      (input)="drawMasks()"
+    />
+  </div>
+
   <div *ngIf="loading" class="loading-indicator">
     <div class="spinner"></div>
     <p>Analyzing image, please wait...</p>
