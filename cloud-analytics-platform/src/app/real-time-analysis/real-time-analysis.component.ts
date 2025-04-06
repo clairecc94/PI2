@@ -22,10 +22,10 @@ export class RealTimeAnalysisComponent {
   private apiKey = 'ezLS5FQ0wcs0SzBf9Nj7';
 
   // Class-to-color mapping
-  private classColors: { [key: string]: string } = {
-    'contrail young': 'rgba(255, 0, 0, 0.4)',      // red
-    'contrail old': 'rgba(128, 0, 128, 0.4)',      // purple
-    'contrail veryold': 'rgba(255,20,147, 0.4)',   // pink
+  protected classColors: { [key: string]: string } = {
+    'contrail young': 'rgba(255, 0, 0, 0.4)',       // red
+    'contrail old': 'rgba(255,20,147, 0.4)',        // pink
+    'contrail veryold': 'rgba(128, 0, 128, 0.4)',   // purple
   };
 
 // List of classes to skip
@@ -104,6 +104,13 @@ export class RealTimeAnalysisComponent {
     const canvas = this.canvasRef.nativeElement;
     canvas.width = img.clientWidth;
     canvas.height = img.clientHeight;
+  }
+
+  get classColorEntries() {
+    return Object.entries(this.classColors).map(([className, color]) => ({
+      class: className,
+      color: color
+    })).filter(entry => !this.ignoredClasses.includes(entry.class));
   }
 
   drawMasks(): void {

@@ -32,4 +32,14 @@
       <canvas #maskCanvas class="mask-canvas"></canvas>
     </div>
   </div>
+
+  <div class="legend-container" *ngIf="classColors">
+    <h3>Legend</h3>
+    <ul>
+      <li *ngFor="let entry of classColorEntries">
+        <span class="legend-color" [ngStyle]="{ 'background-color': entry.color }"></span>
+        {{ entry.class }}
+      </li>
+    </ul>
+  </div>
 </div>
