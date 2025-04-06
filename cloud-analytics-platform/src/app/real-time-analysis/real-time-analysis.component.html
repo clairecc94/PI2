@@ -1,6 +1,6 @@
 <div class="real-time-analysis-container">
   <h2 style="text-align: center;">Real-Time Analysis</h2>
-  
+
   <div class="upload-container">
     <label for="file-upload" class="upload-label">
       <span class="upload-icon">📷</span> Choose an image
@@ -10,6 +10,13 @@
 
   <!-- Display the selected image -->
   <div *ngIf="imageUrl" class="image-preview">
-    <img [src]="imageUrl" alt="Sky Image" class="sky-image" />
+    <img [src]="imageUrl" alt="Sky Image" class="sky-image" #imageElement />
+    <canvas *ngIf="imageResult" #canvasElement></canvas> <!-- Canvas for segmentation result -->
   </div>
+
+  <!-- Loading indicator -->
+  <div *ngIf="loading">Processing image...</div>
+
+  <!-- Error message -->
+  <div *ngIf="error" class="error-message">{{ error }}</div>
 </div>
