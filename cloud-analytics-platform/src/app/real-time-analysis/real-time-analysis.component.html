@@ -8,15 +8,10 @@
     <input type="file" id="file-upload" (change)="onFileSelected($event)" />
   </div>
 
-  <!-- Display the selected image -->
-  <div *ngIf="imageUrl" class="image-preview">
-    <img [src]="imageUrl" alt="Sky Image" class="sky-image" #imageElement />
-    <canvas *ngIf="imageResult" #canvasElement></canvas> <!-- Canvas for segmentation result -->
+  <div class="image-preview" *ngIf="imageUrl">
+    <div class="canvas-wrapper">
+      <img [src]="imageUrl" alt="Sky Image" class="sky-image" #imageRef (load)="onImageLoad(imageRef)" />
+      <canvas #maskCanvas class="mask-canvas"></canvas>
+    </div>
   </div>
-
-  <!-- Loading indicator -->
-  <div *ngIf="loading">Processing image...</div>
-
-  <!-- Error message -->
-  <div *ngIf="error" class="error-message">{{ error }}</div>
 </div>

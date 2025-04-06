@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import axios from 'axios';
 
@@ -15,13 +15,14 @@ export class RealTimeAnalysisComponent {
   loading: boolean = false;
   error: string | null = null;
 
-  //private roboflowUrl = 'https://detect.roboflow.com/contrails-detection-6hngf/2/rf_F5cjmGqfC4TgBuRCOiC5hoZYKBt2';
-
   private model = 'contrails-detection-6hngf';
   private version = '2';
   private apiKey = 'ezLS5FQ0wcs0SzBf9Nj7';
 
   constructor() {}
+
+  @ViewChild('maskCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('imageRef') imageRef!: ElementRef<HTMLImageElement>;
 
   // Method to handle file selection
   onFileSelected(event: any): void {
@@ -61,12 +62,76 @@ export class RealTimeAnalysisComponent {
         console.log('Segmentation result:', this.imageResult);
         this.loading = false;
 
-        // TODO: Add canvas drawing here if you want to overlay the mask
+        // If image already loaded, draw now
+        if (this.imageRef?.nativeElement.complete) {
+          this.drawMasks();
+        }
       })
       .catch((error) => {
         this.error = 'Error processing image: ' + error.message;
         this.loading = false;
         console.error(error);
       });
+  }
+
+  onImageLoad(img: HTMLImageElement): void {
+    setTimeout(() => {
+      this.updateCanvasSize();
+      if (this.imageResult) {
+        this.drawMasks();
+      }
+    }, 0); // Run after layout
+  }
+
+  updateCanvasSize(): void {
+    const img = this.imageRef.nativeElement;
+    const canvas = this.canvasRef.nativeElement;
+    canvas.width = img.clientWidth;
+    canvas.height = img.clientHeight;
+  }
+
+  drawMasks(): void {
+    const canvas = this.canvasRef.nativeElement;
+    const ctx = canvas.getContext('2d');
+    if (!ctx || !this.imageResult) return;
+
+    const img = this.imageRef.nativeElement;
+
+    // Roboflow image original size
+    const originalWidth = this.imageResult.image.width;
+    const originalHeight = this.imageResult.image.height;
+
+    // Displayed image size
+    const displayWidth = img.clientWidth;
+    const displayHeight = img.clientHeight;
+
+    const xScale = displayWidth / originalWidth;
+    const yScale = displayHeight / originalHeight;
+
+    // Clear previous masks
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    this.imageResult.predictions.forEach((prediction: any) => {
+      const points = prediction.points;
+
+      ctx.beginPath();
+      points.forEach((pt: any, index: number) => {
+        const x = pt.x * xScale;
+        const y = pt.y * yScale;
+        if (index === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      });
+      ctx.closePath();
+
+      ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+      ctx.fill();
+
+      ctx.strokeStyle = 'red';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    });
   }
 }
