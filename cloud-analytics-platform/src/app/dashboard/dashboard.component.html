@@ -1,0 +1,72 @@
+<div class="dashboard-container">
+  <!-- Solar Energy -->
+  <section *ngIf="solarEnergy">
+    <div class="section-content">
+      <div class="info-card">
+        <h3>☀️ Solar Energy</h3>
+        <p>{{ solarEnergyInfo }}</p>
+
+        <!-- Circle to display current solar energy and increase -->
+        <div class="energy-circle">
+          <div class="circle-content">
+            <p>{{ solarEnergyWatts }} W/m²</p>
+            <p>{{ solarEnergyIncrease }}%</p>
+          </div>
+        </div>
+
+        <canvas id="solarChart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cloud Cover -->
+  <section *ngIf="cloudCover">
+    <div class="section-content">
+      <div class="info-card">
+        <h3>🌥️ Cloud Cover</h3>
+        <p>{{ cloudCoverInfo }}</p>
+        <img src="assets/images/cloud-cover.png" alt="Cloud Cover" class="cloud-image" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Cloud Type -->
+  <section *ngIf="cloudType">
+    <div class="section-content">
+      <div class="info-card">
+        <h3>☁️ Cloud Type</h3>
+        <p>{{ cloudTypeInfo }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Wind Speed -->
+  <section *ngIf="windSpeed">
+    <div class="section-content">
+      <div class="info-card">
+        <h3>💨 Wind Speed</h3>
+        <p>{{ windSpeedInfo }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Humidity -->
+  <section *ngIf="humidity">
+    <div class="section-content">
+      <div class="info-card">
+        <h3>💧 Humidity</h3>
+        <p>{{ humidityInfo }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Precipitation Risk -->
+  <section *ngIf="precipitationRisk">
+    <div class="section-content">
+      <div class="info-card">
+        <h3>🌧️ Precipitation Risk</h3>
+        <p>{{ precipitationRiskInfo }}</p>
+      </div>
+    </div>
+  </section>
+</div>

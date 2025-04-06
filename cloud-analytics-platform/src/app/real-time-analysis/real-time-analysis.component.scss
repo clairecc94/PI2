@@ -1,0 +1,61 @@
+/* Main container for real-time analysis */
+.real-time-analysis-container {
+  text-align: center;
+  padding: 20px;
+  background-color: #f4f4f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  margin: 30px auto;
+}
+
+/* Style for the upload label */
+.upload-container {
+  position: relative;
+  display: inline-block;
+  margin: 20px 0;
+}
+
+.upload-label {
+  padding: 15px 30px;
+  background-color: #3498db;
+  color: white;
+  font-weight: bold;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.upload-label:hover {
+  background-color: #2980b9;
+}
+
+.upload-icon {
+  margin-right: 10px;
+  font-size: 1.5em;
+}
+
+/* Hide the real file input */
+#file-upload {
+  display: none;
+}
+
+/* Style of the image after selection */
+.image-preview {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.sky-image {
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 10px;
+}
+
+p {
+  color: #333;
+  font-size: 1.2rem;
+}

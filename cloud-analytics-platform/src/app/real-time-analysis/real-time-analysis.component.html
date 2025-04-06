@@ -1,0 +1,15 @@
+<div class="real-time-analysis-container">
+  <h2 style="text-align: center;">Real-Time Analysis</h2>
+  
+  <div class="upload-container">
+    <label for="file-upload" class="upload-label">
+      <span class="upload-icon">📷</span> Choose an image
+    </label>
+    <input type="file" id="file-upload" (change)="onFileSelected($event)" />
+  </div>
+
+  <!-- Display the selected image -->
+  <div *ngIf="imageUrl" class="image-preview">
+    <img [src]="imageUrl" alt="Sky Image" class="sky-image" />
+  </div>
+</div>
