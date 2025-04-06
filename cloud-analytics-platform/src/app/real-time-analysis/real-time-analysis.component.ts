@@ -21,6 +21,20 @@ export class RealTimeAnalysisComponent {
   private version = '2';
   private apiKey = 'ezLS5FQ0wcs0SzBf9Nj7';
 
+  // Class-to-color mapping
+  private classColors: { [key: string]: string } = {
+    'contrail young': 'rgba(255, 0, 0, 0.4)',      // red
+    'contrail old': 'rgba(128, 0, 128, 0.4)',      // purple
+    'contrail veryold': 'rgba(255,20,147, 0.4)',   // pink
+  };
+
+// List of classes to skip
+  private ignoredClasses: string[] = [
+    'sun',
+    'parasite',
+    'unknow',
+  ];
+
   constructor() {}
 
   @ViewChild('maskCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
@@ -116,6 +130,9 @@ export class RealTimeAnalysisComponent {
     this.imageResult.predictions.forEach((prediction: any) => {
       if (prediction.confidence < this.confidenceThreshold) return;
 
+      const className = prediction.class;
+      if (this.ignoredClasses.includes(className)) return;
+
       const points = prediction.points;
 
       ctx.beginPath();
@@ -130,12 +147,14 @@ export class RealTimeAnalysisComponent {
       });
       ctx.closePath();
 
-      ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+      // Use class color or default gray
+      const color = this.classColors[className] || 'rgba(150, 150, 150, 0.4)';
+      ctx.fillStyle = color;
       ctx.fill();
 
-      ctx.strokeStyle = 'red';
-      ctx.lineWidth = 2;
-      ctx.stroke();
+      //ctx.strokeStyle = 'red';
+      //ctx.lineWidth = 2;
+      //ctx.stroke();
     });
   }
 }
