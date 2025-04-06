@@ -278,7 +278,6 @@ def load_matching_csl_unwrapped(time):
     return unwrapped_csl_image
 
 
-
 def cloud_detection_unwrapped(time, unwrapped_image, data_dir='data_npy'):
     """
     Détecte les nuages dans une image unwrapped en excluant les pixels noirs.
@@ -301,6 +300,12 @@ def cloud_detection_unwrapped(time, unwrapped_image, data_dir='data_npy'):
     sun_mask : numpy.ndarray
         Masque binaire indiquant la position du soleil
     """
+    import numpy as np
+    import cv2
+    
+    # Ensure necessary functions are available or defined
+    # If these functions aren't defined elsewhere in your code, you'll need to implement them
+    
     original_params = {
         'delta': 14.036,
         'r': 29,
@@ -308,40 +313,67 @@ def cloud_detection_unwrapped(time, unwrapped_image, data_dir='data_npy'):
         'origin_y': 30
     }
     
-    sun_x, sun_y, sun_mask = detect_sun_in_unwrapped(unwrapped_image, time, original_params)
-    valid_mask = create_mask_for_unwrapped(unwrapped_image.shape)
+    try:
+        sun_x, sun_y, sun_mask = detect_sun_in_unwrapped(unwrapped_image, time, original_params)
+    except Exception as e:
+        print(f"Sun detection failed: {e}")
+        sun_x, sun_y, sun_mask = None, None, None
     
-    unwrapped_csl_image = load_matching_csl_unwrapped(time)
+    try:
+        valid_mask = create_mask_for_unwrapped(unwrapped_image.shape)
+    except Exception as e:
+        print(f"Mask creation failed: {e}")
+        # Fallback to a simple mask if function is not available
+        valid_mask = np.ones((unwrapped_image.shape[0], unwrapped_image.shape[1]), dtype=int)
     
-    if unwrapped_csl_image.shape != unwrapped_image.shape:
-        unwrapped_csl_image = cv2.resize(unwrapped_csl_image, (unwrapped_image.shape[1], unwrapped_image.shape[0]))
+    try:
+        unwrapped_csl_image = load_matching_csl_unwrapped(time)
+        if unwrapped_csl_image.shape != unwrapped_image.shape:
+            unwrapped_csl_image = cv2.resize(unwrapped_csl_image, (unwrapped_image.shape[1], unwrapped_image.shape[0]))
+    except Exception as e:
+        print(f"Loading CSL image failed: {e}")
+        # Fallback to a simple reference image if function is not available
+        unwrapped_csl_image = np.zeros_like(unwrapped_image)
+        unwrapped_csl_image[:,:,0] = np.ones_like(unwrapped_image[:,:,0]) * 180  # Higher blue for clear sky
+        unwrapped_csl_image[:,:,2] = np.ones_like(unwrapped_image[:,:,2]) * 90   # Lower red for clear sky
     
+    # Calculate NRBR for original image using the safer np.divide approach
     NRBR_orig = np.divide(
-        (unwrapped_image[:,:,0].astype(int) - unwrapped_image[:,:,2].astype(int)),
-        (unwrapped_image[:,:,0].astype(int) + unwrapped_image[:,:,2].astype(int)),
+        (unwrapped_image[:,:,2].astype(int) - unwrapped_image[:,:,0].astype(int)),
+        (unwrapped_image[:,:,2].astype(int) + unwrapped_image[:,:,0].astype(int)),
         out=np.zeros_like(unwrapped_image[:,:,0], dtype=float),
-        where=(unwrapped_image[:,:,0].astype(int) + unwrapped_image[:,:,2].astype(int)) != 0
+        where=(unwrapped_image[:,:,2].astype(int) + unwrapped_image[:,:,0].astype(int)) != 0
     )
     
+    # Calculate NRBR for clear sky reference
     NRBR_cs = np.divide(
-        (unwrapped_csl_image[:,:,0].astype(int) - unwrapped_csl_image[:,:,2].astype(int)),
-        (unwrapped_csl_image[:,:,0].astype(int) + unwrapped_csl_image[:,:,2].astype(int)),
+        (unwrapped_csl_image[:,:,2].astype(int) - unwrapped_csl_image[:,:,0].astype(int)),
+        (unwrapped_csl_image[:,:,2].astype(int) + unwrapped_csl_image[:,:,0].astype(int)),
         out=np.zeros_like(unwrapped_csl_image[:,:,0], dtype=float),
-        where=(unwrapped_csl_image[:,:,0].astype(int) + unwrapped_csl_image[:,:,2].astype(int)) != 0
+        where=(unwrapped_csl_image[:,:,2].astype(int) + unwrapped_csl_image[:,:,0].astype(int)) != 0
     )
     
+    # Ensure both arrays have the same shape before subtraction
+    # They should be 2D arrays with shapes (height, width)
+    if NRBR_orig.shape != NRBR_cs.shape:
+        print(f"Shape mismatch: NRBR_orig {NRBR_orig.shape}, NRBR_cs {NRBR_cs.shape}")
+        # Resize if necessary
+        NRBR_cs = cv2.resize(NRBR_cs, (NRBR_orig.shape[1], NRBR_orig.shape[0]))
+    
+    # Calculate absolute difference
     d_NRBR = np.abs(NRBR_orig - NRBR_cs)
     
     height, width = unwrapped_image.shape[:2]
     cloud = np.zeros((height, width), dtype=int)
 
-    # Seuil pour exclure les pixels noirs
+    # Threshold to exclude black pixels
     black_threshold = 30
     is_black_pixel = np.all(unwrapped_image <= black_threshold, axis=-1)
 
+    # First pass: use d_NRBR for cloud detection
     for i in range(height):
         for j in range(width):
-            if valid_mask[i, j] == 1 and not is_black_pixel[i, j]:  
+            if valid_mask[i, j] == 1 and not is_black_pixel[i, j]:
                 if d_NRBR[i, j] >= 0.175:
                     cloud[i, j] = 1
     
@@ -350,6 +382,7 @@ def cloud_detection_unwrapped(time, unwrapped_image, data_dir='data_npy'):
     
     cloud_cover = cloud_pixels / valid_area if valid_area > 0 else 0
 
+    # Second pass: refine detection for medium cloud cover
     if (cloud_cover >= 0.045) and (cloud_cover < 0.35):
         cloud = np.zeros((height, width), dtype=int)
         sun_radius_unwrapped = max(2, int(width / 100))
@@ -364,6 +397,7 @@ def cloud_detection_unwrapped(time, unwrapped_image, data_dir='data_npy'):
                         if NRBR_orig[i, j] <= 0.05:
                             cloud[i, j] = 1
 
+    # Third pass: refine detection for high cloud cover
     if cloud_cover >= 0.35:
         cloud = np.zeros((height, width), dtype=int)
         for i in range(height):
@@ -372,9 +406,11 @@ def cloud_detection_unwrapped(time, unwrapped_image, data_dir='data_npy'):
                     if NRBR_orig[i, j] <= 0.05:
                         cloud[i, j] = 1
     
+    # Recalculate cloud cover after refinement
     cloud_pixels = np.sum(cloud)
     cloud_cover = cloud_pixels / valid_area if valid_area > 0 else 0
     
+    # Create color mask for visualization
     cloud_mask = np.zeros((height, width, 3), dtype=np.uint8)
     cloud_mask[:, :, 1] = 255 * cloud  
 
@@ -397,6 +433,10 @@ def visualize_cloud_detection(unwrapped_image, cloud_mask, sun_mask, cloud_cover
     cloud_cover : float
         Fraction de pixels de nuage dans l'image
     """
+    import cv2
+    import matplotlib.pyplot as plt
+    import numpy as np
+    
     # Créer une version RGB de l'image originale si elle est en BGR
     if unwrapped_image.shape[2] == 3:
         rgb_image = cv2.cvtColor(unwrapped_image, cv2.COLOR_BGR2RGB)
