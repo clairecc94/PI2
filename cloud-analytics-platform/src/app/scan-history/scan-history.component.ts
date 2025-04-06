@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
+  standalone: true,
   selector: 'app-scan-history',
   templateUrl: './scan-history.component.html',
   styleUrls: ['./scan-history.component.scss'],

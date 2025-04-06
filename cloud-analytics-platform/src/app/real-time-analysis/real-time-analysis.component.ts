@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
+  standalone: true,
   selector: 'app-real-time-analysis',
   imports: [CommonModule],
   templateUrl: './real-time-analysis.component.html',
