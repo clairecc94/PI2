@@ -240,10 +240,16 @@ def generate_synthetic_pv_output(features):
     
     return pv_output
 
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.preprocessing import StandardScaler
+import numpy as np
+
 def train_pv_prediction_model(sky_images, timestamps, pv_outputs=None):
     """
     Train a model to predict PV output from sky images.
-    
+
     Parameters:
     -----------
     sky_images : numpy.ndarray
@@ -252,7 +258,7 @@ def train_pv_prediction_model(sky_images, timestamps, pv_outputs=None):
         Array of corresponding timestamps
     pv_outputs : numpy.ndarray, optional
         Array of corresponding PV outputs. If None, synthetic data is generated.
-        
+
     Returns:
     --------
     model : RandomForestRegressor
@@ -276,72 +282,53 @@ def train_pv_prediction_model(sky_images, timestamps, pv_outputs=None):
             features['brightness_std'],
             features['cloud_opacity']
         ])
-    
+
     X = np.array(feature_list)
-    
+
     # Create target data
     if pv_outputs is None:
-        y = np.array([generate_synthetic_pv_output(extract_features(sky_images[i], timestamps[i])) 
-                     for i in range(len(sky_images))])
+        y = np.array([generate_synthetic_pv_output(features) for features in feature_list])
     else:
         y = pv_outputs
-    
+
     # Split data
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    
+
     # Scale features
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
-    
+
     # Train model
     model = RandomForestRegressor(n_estimators=100, random_state=42)
     model.fit(X_train_scaled, y_train)
-    
+
     # Evaluate model
     y_pred = model.predict(X_test_scaled)
     mse = mean_squared_error(y_test, y_pred)
     r2 = r2_score(y_test, y_pred)
-    
+
     print(f"Model evaluation - MSE: {mse:.4f}, R²: {r2:.4f}")
-    
+
     return model, scaler
+
 
 def predict_pv_output(model, scaler, sky_image, timestamp):
     """
     Predict PV output for a given sky image.
-    
-    Parameters:
-    -----------
-    model : RandomForestRegressor
-        Trained prediction model
-    scaler : StandardScaler
-        Feature scaler
-    sky_image : numpy.ndarray
-        Sky image to predict from
-    timestamp : datetime.datetime
-        Timestamp of the image
-        
-    Returns:
-    --------
-    pv_output : float
-        Predicted PV output (0-1, normalized)
     """
     # Extract features
     features = extract_features(sky_image, timestamp)
     
-    # Convert to array
+    # Use only the 7 features that the model was trained with
     feature_array = np.array([[
         features['cloud_cover'],
-        features['sun_zenith'],
-        features['sun_azimuth'],
+        features['sun_zenith'],  # same as zenith
+        features['sun_azimuth'],  # same as azimuth
         features['hour'],
         features['day_of_year'],
-        features['cloud_to_sun_distance'],
-        features['cloud_distribution'],
         features['brightness_mean'],
-        features['brightness_std'],
-        features['cloud_opacity']
+        features['brightness_std']
     ]])
     
     # Scale features
