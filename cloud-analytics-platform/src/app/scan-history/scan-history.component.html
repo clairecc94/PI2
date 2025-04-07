@@ -1,0 +1,18 @@
+<div class="scan-history-container">
+  <h2 style="text-align: center;">Scan History</h2>
+
+  <!-- Scan card container -->
+  <div class="scan-card-container">
+    <div class="scan-card" *ngFor="let scan of scanHistory">
+      <div class="scan-card-header">
+        <h3>Scan #{{ scan.id }}</h3>
+        <span [ngClass]="{'status-ok': scan.result === 'OK', 'status-error': scan.result === 'Anomaly'}">
+          {{ scan.result }}
+        </span>
+      </div>
+      <p class="scan-date">Date: {{ scan.date }}</p>
+      <p class="scan-description">Details: {{ scan.description }}</p>
+      <button (click)="viewScanDetails(scan)">View Details</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,45 @@
+<div class="real-time-analysis-container">
+  <h2 style="text-align: center;">Real-Time Analysis</h2>
+
+  <div class="upload-container">
+    <label for="file-upload" class="upload-label">
+      <span class="upload-icon">📷</span> Choose an image
+    </label>
+    <input type="file" id="file-upload" (change)="onFileSelected($event)" />
+  </div>
+
+  <div class="confidence-slider">
+    <label for="confidence">Confidence threshold: {{ confidenceThreshold.toFixed(2) }}</label>
+    <input
+      type="range"
+      id="confidence"
+      min="0"
+      max="1"
+      step="0.01"
+      [(ngModel)]="confidenceThreshold"
+      (input)="drawMasks()"
+    />
+  </div>
+
+  <div *ngIf="loading" class="loading-indicator">
+    <div class="spinner"></div>
+    <p>Analyzing image, please wait...</p>
+  </div>
+
+  <div class="image-preview" *ngIf="imageUrl">
+    <div class="canvas-wrapper">
+      <img [src]="imageUrl" alt="Sky Image" class="sky-image" #imageRef (load)="onImageLoad(imageRef)" />
+      <canvas #maskCanvas class="mask-canvas"></canvas>
+    </div>
+  </div>
+
+  <div class="legend-container" *ngIf="classColors">
+    <h3>Legend</h3>
+    <ul>
+      <li *ngFor="let entry of classColorEntries">
+        <span class="legend-color" [ngStyle]="{ 'background-color': entry.color }"></span>
+        {{ entry.class }}
+      </li>
+    </ul>
+  </div>
+</div>

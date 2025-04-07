@@ -1,0 +1,21 @@
+<div class="app-container">
+  <!-- Vidéo en fond -->
+  <video autoplay muted loop id="background-video">
+    <source src="assets/videos/Nuages.webm" type="video/webm">
+    <source src="assets/videos/Nuages.mp4" type="video/mp4">
+</video>
+
+  <header>
+    <h1>{{ title }}</h1>
+    <nav>
+      <ul>
+        <li><button (click)="navigateTo('/dashboard')">Dashboard</button></li>
+        <li><button (click)="navigateTo('/real-time-analysis')">Real-time analysis</button></li>
+        <li><button (click)="navigateTo('/scan-history')">Scan history</button></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Point d'ancrage pour l'affichage des composants liés aux routes -->
+  <router-outlet></router-outlet>
+</div>

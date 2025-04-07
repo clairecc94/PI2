@@ -1,0 +1,103 @@
+/* Main container */
+.dashboard-container {
+  margin: 20px auto;
+  padding: 20px;
+  display: flex;
+  flex-wrap: wrap; /* Allows the cards to spread across multiple lines */
+  justify-content: flex-start; /* Aligns the cards to the left */
+  gap: 40px; /* Space between the cards */
+  width: 100%;
+  max-width: 1600px;
+  overflow: hidden;
+}
+
+/* Specifically target the first 3 elements with the "top-cards" class */
+.dashboard-container .top-cards {
+  margin-left: 40px; /* Shifts the first 3 elements to the left */
+}
+
+/* Info cards */
+.info-card {
+  background-color: #7f8c8d;
+  padding: 20px;
+  border-radius: 10px;
+  width: 450px;
+  height: 300px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column; /* Organizes the title at the top and content below */
+  align-items: center;
+  justify-content: flex-start; /* Aligns the content at the top */
+  color: #fff;
+  padding-top: 20px; /* Adds some space at the top */
+}
+
+/* Card titles */
+.info-card h3 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 15px; /* Space between the title and content */
+  color: #fff;
+  text-align: center;
+}
+
+/* Reduces the image size to prevent it from being too large */
+.cloud-image {
+  width: 90%; /* Reduces the image size to 90% of the container's width */
+  max-width: 450px; /* Sets a maximum width */
+  height: auto; /* Keeps the original aspect ratio */
+  display: block;
+  margin: 0 auto;
+}
+
+/* Style for the circle containing solar energy info */
+.energy-circle {
+  width: 120px; /* Circle size */
+  height: 120px;
+  background-color: #ebe127; /* Yellow for solar energy */
+  border-radius: 50%; /* Makes the element circular */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  margin-top: 20px; /* Space between the circle and the text above, moves the circle higher */
+}
+
+/* Content inside the circle */
+.circle-content {
+  text-align: center;
+  color: rgb(0, 0, 0);
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+/* Hover effect */
+.info-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1400px) {
+  .dashboard-container {
+    max-width: 1200px;
+    gap: 30px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .dashboard-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .info-card-container {
+    width: 90%;
+  }
+
+  .info-card {
+    width: 100%;
+  }
+}
