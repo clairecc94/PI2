@@ -1,0 +1,47 @@
+<div class="container">
+
+    <!-- 🌞 SUNNY SECTION -->
+    <h2>Sunny Image</h2>
+    <input type="range"
+           [min]="0" [max]="timeStampsSunny.length - 1"
+           [value]="sunnyIndex"
+           (input)="onSunnyIndexChange($event)" />
+    <p>Sunny Image Index: {{ sunnyIndex }}</p>
+    <img [src]="getImagePath(sunnyIndex, 'sunny')" alt="Sunny Image" width="300" />
+
+
+  
+    <hr>
+  
+    <!-- ☁️ CLOUDY SECTION -->
+    <h2>Cloudy Image</h2>
+    <input type="range"
+           [min]="0" [max]="timeStampsCloudy.length - 1"
+           [value]="cloudyIndex"
+           (input)="onCloudyIndexChange($event)" />
+    <p>Cloudy Image Index: {{ cloudyIndex }}</p>
+    <img [src]="getImagePath(cloudyIndex, 'cloudy')" alt="Cloudy Image" width="300" />
+  
+    <hr>
+  
+    <!-- 🎥 VIDEO SECTION -->
+    <h2>Video Output with PV</h2>
+    <div style="display: flex; gap: 40px">
+      <div>
+        <h3>Sunny Video + PV Output</h3>
+        <video width="300" controls>
+          <source src="assets/videos/sunny_video.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      </div>
+  
+      <div>
+        <h3>Cloudy Video + PV Output</h3>
+        <video width="300" controls>
+          <source src="assets/videos/cloudy_video.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    </div>
+  </div>
+  

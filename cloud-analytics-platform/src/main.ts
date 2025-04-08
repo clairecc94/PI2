@@ -4,6 +4,7 @@ import { provideClientHydration } from '@angular/platform-browser';  // Optionne
 import { AppComponent } from './app/app.component';  // Importer ton composant principal
 import { APP_ROUTES } from './app/app.routes';  // Importer tes routes
 
+
 // Bootstrapping de l'application avec la configuration du routeur
 bootstrapApplication(AppComponent, {
   providers: [
