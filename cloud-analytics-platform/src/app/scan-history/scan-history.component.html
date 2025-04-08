@@ -1,0 +1,28 @@
+<div class="scan-history">
+  <h2>Scan History</h2>
+
+  <!-- Button to clear history -->
+  <button (click)="clearHistory()" class="clear-history-button">Clear History</button>
+
+  <div *ngIf="scans.length === 0" class="no-scans">
+    No scans yet.
+  </div>
+
+  <div *ngIf="scans.length > 0" class="scan-list">
+    <div *ngFor="let scan of scans" class="scan-item">
+      <div class="scan-content">
+        <img [src]="scan.imageUrl" alt="Scan image" class="scan-image" />
+        <div class="scan-details">
+          <p><strong>Timestamp:</strong> {{ scan.timestamp | date: 'short' }}</p>
+          <p><strong>Predictions:</strong></p>
+          <ul>
+            <li *ngFor="let prediction of scan.predictions">
+              <span [ngStyle]="{ color: prediction.color }">{{ prediction.class }}</span>
+              (Confidence: {{ prediction.confidence | number: '1.0-2' }})
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
