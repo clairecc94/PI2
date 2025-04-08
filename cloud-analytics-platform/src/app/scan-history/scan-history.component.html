@@ -1,18 +1,28 @@
-<div class="scan-history-container">
-  <h2 style="text-align: center;">Scan History</h2>
+<div class="scan-history">
+  <h2>Scan History</h2>
 
-  <!-- Scan card container -->
-  <div class="scan-card-container">
-    <div class="scan-card" *ngFor="let scan of scanHistory">
-      <div class="scan-card-header">
-        <h3>Scan #{{ scan.id }}</h3>
-        <span [ngClass]="{'status-ok': scan.result === 'OK', 'status-error': scan.result === 'Anomaly'}">
-          {{ scan.result }}
-        </span>
+  <!-- Button to clear history -->
+  <button (click)="clearHistory()" class="clear-history-button">Clear History</button>
+
+  <div *ngIf="scans.length === 0" class="no-scans">
+    No scans yet.
+  </div>
+
+  <div *ngIf="scans.length > 0" class="scan-list">
+    <div *ngFor="let scan of scans" class="scan-item">
+      <div class="scan-content">
+        <img [src]="scan.imageUrl" alt="Scan image" class="scan-image" />
+        <div class="scan-details">
+          <p><strong>Timestamp:</strong> {{ scan.timestamp | date: 'short' }}</p>
+          <p><strong>Predictions:</strong></p>
+          <ul>
+            <li *ngFor="let prediction of scan.predictions">
+              <span [ngStyle]="{ color: prediction.color }">{{ prediction.class }}</span>
+              (Confidence: {{ prediction.confidence | number: '1.0-2' }})
+            </li>
+          </ul>
+        </div>
       </div>
-      <p class="scan-date">Date: {{ scan.date }}</p>
-      <p class="scan-description">Details: {{ scan.description }}</p>
-      <button (click)="viewScanDetails(scan)">View Details</button>
     </div>
   </div>
 </div>

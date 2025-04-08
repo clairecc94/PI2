@@ -1,7 +1,8 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; // <-- add this if not already there
+import { FormsModule } from '@angular/forms';
 import axios from 'axios';
+import { ScanHistoryService } from '../scan-history/scan-history.service';
 
 @Component({
   standalone: true,
@@ -12,7 +13,7 @@ import axios from 'axios';
 })
 export class RealTimeAnalysisComponent {
   imageUrl: string | ArrayBuffer | null = null;
-  imageResult: any; // To hold the result from the Roboflow API
+  imageResult: any;
   loading: boolean = false;
   error: string | null = null;
   confidenceThreshold: number = 0.5;
@@ -21,39 +22,33 @@ export class RealTimeAnalysisComponent {
   private version = '2';
   private apiKey = 'ezLS5FQ0wcs0SzBf9Nj7';
 
-  // Class-to-color mapping
   protected classColors: { [key: string]: string } = {
-    'contrail young': 'rgba(255, 0, 0, 0.4)',       // red
-    'contrail old': 'rgba(255,20,147, 0.4)',        // pink
-    'contrail veryold': 'rgba(128, 0, 128, 0.4)',   // purple
+    'contrail young': 'rgba(255, 0, 0, 0.4)',
+    'contrail old': 'rgba(255,20,147, 0.4)',
+    'contrail veryold': 'rgba(128, 0, 128, 0.4)',
   };
 
-// List of classes to skip
-  private ignoredClasses: string[] = [
-    'sun',
-    'parasite',
-    'unknow',
-  ];
+  private ignoredClasses: string[] = ['sun', 'parasite', 'unknow'];
 
-  constructor() {}
+  constructor(private scanHistoryService: ScanHistoryService) {}
 
   @ViewChild('maskCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('imageRef') imageRef!: ElementRef<HTMLImageElement>;
 
-  // Method to handle file selection
+  // Triggered when a file is selected
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
         this.imageUrl = reader.result;
-        this.processImage(reader.result as string); // Process the selected image
+        this.processImage(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
   }
 
-  // Method to process the selected image with Roboflow API
+  // Process the selected image
   processImage(base64Image: string): void {
     this.loading = true;
     this.error = null;
@@ -61,7 +56,7 @@ export class RealTimeAnalysisComponent {
     const url = `https://outline.roboflow.com/${this.model}/${this.version}`;
     const base64Data = base64Image.replace(/^data:image\/[a-z]+;base64,/, '');
 
-    // Using axios to send the image to the Roboflow API
+    // Send image data to the model for processing
     axios({
       method: 'POST',
       url,
@@ -78,10 +73,12 @@ export class RealTimeAnalysisComponent {
         console.log('Segmentation result:', this.imageResult);
         this.loading = false;
 
-        // If image already loaded, draw now
         if (this.imageRef?.nativeElement.complete) {
           this.drawMasks();
         }
+
+        // Save the scan result to history
+        this.saveScanToHistory(base64Image, this.imageResult);
       })
       .catch((error) => {
         this.error = 'Error processing image: ' + error.message;
@@ -90,15 +87,53 @@ export class RealTimeAnalysisComponent {
       });
   }
 
+  // Save the processed scan to history
+  // Save the processed scan to history
+  saveScanToHistory(base64Image: string, result: any): void {
+    const scanEntry = {
+      timestamp: new Date().toISOString(),  // Change id to timestamp for easier sorting
+      imageUrl: base64Image,  // Store the base64 image data
+      predictions: result.predictions.map((p: any) => ({
+        class: p.class,
+        confidence: p.confidence,
+        color: this.classColors[p.class] || 'rgba(150, 150, 150, 0.4)'  // Set color based on class
+      })),
+    };
+  
+    const existingHistory = JSON.parse(localStorage.getItem('scanHistory') || '[]');
+    existingHistory.unshift(scanEntry);
+    localStorage.setItem('scanHistory', JSON.stringify(existingHistory));
+  }
+  
+
+
+  // This method will extract the canvas content as a base64 image (modified version)
+  getModifiedImageUrl(): string {
+    const canvas = this.canvasRef.nativeElement;
+    return canvas.toDataURL('image/png');  // Get the canvas content as a base64-encoded PNG image
+  }
+
+  // Generate a summary of the scan results
+  getScanSummary(result: any): string {
+    const classes = result.predictions.map((p: any) => p.class);
+    const counts = classes.reduce((acc: any, cls: string) => {
+      acc[cls] = (acc[cls] || 0) + 1;
+      return acc;
+    }, {});
+    return Object.entries(counts).map(([k, v]) => `${v}× ${k}`).join(', ');
+  }
+
+  // Handle image load event
   onImageLoad(img: HTMLImageElement): void {
     setTimeout(() => {
       this.updateCanvasSize();
       if (this.imageResult) {
         this.drawMasks();
       }
-    }, 0); // Run after layout
+    }, 0);
   }
 
+  // Update the canvas size based on the image dimensions
   updateCanvasSize(): void {
     const img = this.imageRef.nativeElement;
     const canvas = this.canvasRef.nativeElement;
@@ -106,6 +141,7 @@ export class RealTimeAnalysisComponent {
     canvas.height = img.clientHeight;
   }
 
+  // Filter out ignored classes and return the remaining class-color pairs
   get classColorEntries() {
     return Object.entries(this.classColors).map(([className, color]) => ({
       class: className,
@@ -113,27 +149,24 @@ export class RealTimeAnalysisComponent {
     })).filter(entry => !this.ignoredClasses.includes(entry.class));
   }
 
+  // Draw the predicted masks on the canvas
   drawMasks(): void {
     const canvas = this.canvasRef.nativeElement;
     const ctx = canvas.getContext('2d');
     if (!ctx || !this.imageResult) return;
 
     const img = this.imageRef.nativeElement;
-
-    // Roboflow image original size
     const originalWidth = this.imageResult.image.width;
     const originalHeight = this.imageResult.image.height;
-
-    // Displayed image size
     const displayWidth = img.clientWidth;
     const displayHeight = img.clientHeight;
 
     const xScale = displayWidth / originalWidth;
     const yScale = displayHeight / originalHeight;
 
-    // Clear previous masks
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Iterate over the predictions and draw the masks on the canvas
     this.imageResult.predictions.forEach((prediction: any) => {
       if (prediction.confidence < this.confidenceThreshold) return;
 
@@ -154,14 +187,9 @@ export class RealTimeAnalysisComponent {
       });
       ctx.closePath();
 
-      // Use class color or default gray
       const color = this.classColors[className] || 'rgba(150, 150, 150, 0.4)';
       ctx.fillStyle = color;
       ctx.fill();
-
-      //ctx.strokeStyle = 'red';
-      //ctx.lineWidth = 2;
-      //ctx.stroke();
     });
   }
 }

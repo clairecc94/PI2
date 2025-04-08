@@ -1,80 +1,97 @@
-/* Main container */
-.scan-history-container {
-  max-width: 1200px;
-  margin: 40px auto;
+/* Centering the whole scan history */
+.scan-history {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   padding: 20px;
-  text-align: center;
 }
 
 h2 {
-  font-size: 2rem;
-  font-weight: bold;
+  font-size: 2.5em;  /* Augmente la taille du titre */
+  font-weight: bold;  /* Met en gras */
+  color: #000000;  /* Couleur bleue pour attirer l'attention */
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);  /* Ombre portée subtile pour le texte */
   margin-bottom: 20px;
-  color: #333;
+  text-align: center;
+  letter-spacing: 1px;  /* Espacement des lettres pour un effet plus moderne */
 }
 
-/* Scan card container */
-.scan-card-container {
+/* Style for empty scan history message */
+.no-scans {
+  font-size: 1.2em;
+  color: #000000;
+  text-align: center;
+}
+
+/* Container for scan items */
+.scan-list {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 20px;
-  align-items: center;
 }
 
-/* Individual scan card */
-.scan-card {
-  background-color: #f9f9f9;
-  padding: 20px;
-  border-radius: 10px;
-  width: 80%;
-  max-width: 600px;
+/* Style for each individual scan box */
+.scan-item {
+  background-color: #f1f4f8;
+  border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  width: 250px;
+  text-align: center;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover effect for scan items */
+.scan-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Style for the scan image */
+.scan-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+/* Style for scan details */
+.scan-details {
+  margin-top: 15px;
   text-align: left;
 }
 
-.scan-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* Style for predictions */
+.scan-details ul {
+  list-style: none;
+  padding: 0;
 }
 
-.scan-card h3 {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #333;
+.scan-details li {
+  margin-bottom: 5px;
+  font-size: 0.9em;
 }
 
-.status-ok {
-  color: green;
-}
-
-.status-error {
-  color: red;
-}
-
-.scan-date, .scan-description {
-  font-size: 1rem;
-  color: #666;
-  margin-top: 10px;
-}
-
-button {
-  background-color: #007bff;
-  color: #fff;
+/* Button to clear scan history */
+.clear-history-button {
+  background-color: #ff4d4d; /* Rouge vif */
+  color: white;
   border: none;
-  padding: 10px 20px;
-  margin-top: 15px;
+  padding: 12px 25px;
+  font-size: 1.2em;
+  font-weight: bold;
+  border-radius: 8px;
   cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.3s;
+  margin-bottom: 30px; /* Espace avant la liste des scans */
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  display: block; /* Centrer le bouton */
 }
 
-button:hover {
-  background-color: #0056b3;
+.clear-history-button:hover {
+  background-color: #ff1a1a; /* Changer la couleur au survol */
+  transform: scale(1.05); /* Effet de zoom au survol */
 }
 
-.scan-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+.clear-history-button:focus {
+  outline: none; /* Retirer le contour du bouton au focus */
 }
