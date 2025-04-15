@@ -17,17 +17,17 @@ This project, developed by Team 266, focuses on analyzing satellite images to de
 Installation
 Clone the Repository:
 
-"""
+```
 git clone https://github.com/clairecc94/PI2.git
 cd PI2
-"""
+```
 Frontend 
 
-"""
+```
 cd frontend
 npm install
 npm start
-"""
+```
 Access the Application:
 
 Open your browser and navigate to http://localhost:3000 to use the platform.
